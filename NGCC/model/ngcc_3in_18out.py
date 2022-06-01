@@ -1,4 +1,4 @@
-
+# %%
 __author__ = "Nishant Giridhar"
 
 import pyomo.environ as pyo
@@ -6,14 +6,18 @@ from pyomo.dae import ContinuousSet,  DerivativeVar
 import scipy.io
 import numpy as np
 import pandas as pd
+import os
 
+cpath = os.path.dirname(__file__)
+
+# %%
 def create_ngcc_ROM(b, time_set):
-    mat = scipy.io.loadmat('data/NGCC/NGCC_ROM.mat')
+    mat = scipy.io.loadmat(f'{cpath}/data/NGCC_ROM.mat')
         
-    y_NOM = pd.read_csv('data/NGCC/NGCC_H2_Output_100.txt', 
+    y_NOM = pd.read_csv(f'{cpath}/data/NGCC_H2_Output_100.txt', 
                         header=None, index_col=0, sep=None, engine='python')
 
-    u_NOM = pd.read_csv('data/NGCC/NGCC_H2_Input_100.txt',
+    u_NOM = pd.read_csv(f'{cpath}/data/NGCC_H2_Input_100.txt',
                         header=None,index_col=0, sep=None, engine='python')
 
 
