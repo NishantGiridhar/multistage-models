@@ -28,6 +28,6 @@ $$y_{t+1}=h(x_{t+1}) = Cx_{t+1}$$
 ### Inner process model (mp): In-house NGCC model: 3 inputs-18 outputs
 - u[1] : NG flow rate (disturbance variable)
 - u[2] : H2 flow rate (control variable)
-- u[3] : Something    (cOnstant variable)
+- u[3] : Something    (constant)
   
 
