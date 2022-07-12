@@ -6,9 +6,9 @@ from pyomo.dae import ContinuousSet
 from NGCC.model.ngcc_3in_18out import create_ngcc_ROM 
 
 from idaes.core.util.model_statistics import degrees_of_freedom
+from idaes.core.util import to_json
 
-
-class ControlEpisodeBlock:
+class EpisodicLearningBlock:
     def __init__(self, max_duration):
         self.max_time = max_duration
         self.process_model = None
@@ -119,7 +119,7 @@ class ControlEpisodeBlock:
         print(f'Episode simulated')
 
         if save_json:
-            pass
+            to_json(m, fname='episode.json.gz', gz=True, human_read=True)
 
 
 # Minimal working example
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     import pandas as pd
     import random
     from idaes.core.solvers import get_solver
-
+    import matplotlib.pyplot as plt
 
     u_NOM = pd.read_csv('NGCC/model/data/NGCC_H2_Input_100.txt',
                             header=None,index_col=0, sep=None, engine='python')
@@ -177,17 +177,45 @@ if __name__ == "__main__":
         return False
 
 
-    NGCC_block = ControlEpisodeBlock(max_duration = 60)
 
-    NGCC_block.load_process_model(model_builder = create_ngcc_ROM, 
+    # Follow this workflow
+    sim = EpisodicLearningBlock(max_duration = 60)
+
+    sim.load_process_model(model_builder = create_ngcc_ROM, 
                                 discretize = True, nfe = 60)
     
-    NGCC_block.simulate_episode(control_model       = get_control,
-                                disturbance_model   = get_disturbance,
-                                fixed_var_value     = u_NOM[1][3],
-                                early_termination_criterion = early_termination_criterion)
+    sim.simulate_episode(control_model                      = get_control,
+                                disturbance_model           = get_disturbance,
+                                fixed_var_value             = u_NOM[1][3],
+                                early_termination_criterion = early_termination_criterion,
+                                save_json                   = False)
                                 # TODO: 
+
     
+    def make_plots():
+
+        m = sim.process_model
+
+        plt.plot(m.time, m.u[:,1]())
+        plt.xlabel('Time (min)')
+        plt.ylabel('NG flowrate')
+        plt.title('Disturbance in input')
+        plt.show()
+
+        plt.plot(m.time, m.u[:,2]())
+        plt.xlabel('Time (min)')
+        plt.ylabel('H2 flowrate')
+        plt.title('Control action')
+        plt.show()
+
+        plt.plot(m.time, m.y[:,1]())
+        plt.xlabel('Time (min)')
+        plt.ylabel('Gross power output')
+        plt.title('Disturbance in output')
+        plt.show()
+    
+
+    make_plots()
 # %%  
     
 
