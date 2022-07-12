@@ -1,32 +1,55 @@
-# multistage-model examples
 
 
+# EpisodicLearningBlock
 
-## 1. Two stage control problem 
+- The EpisodicLearningBlock contains the python and pyomo methods that can be used to convert a general dynamic pyomo model into one suitable to solve episodic control problems. 
 
-We would need a time horizon set T := [0,1,2,3,....$t_f$]
-
-Let's say we have two optimization models, the master problem (denoted by m) and the "simulation" (can be optimization as well) model (denoted by s). 
-
-$$m := $$
-   
+- The present version is a work in progress will need some handholding functions. A minimal working example for a 3 input 18 output state space model is provided under the `if __name__ == "__main__"` construct.
 
 
-For trying this out, simply consider any standard linear (or even nonlinear) state space model from the book/literature: 
+The following functions are currently implemented:
 
-This is of the form: 
-$$x_{t+1}=x_t+\Delta x = Ax_t+bu_t$$
-$$y_{t+1}=h(x_{t+1}) = Cx_{t+1}$$
-   Out of the inputs ‘u’ consider 1 or more as disturbance (i.e. fixed values in IDAES that one can change as one wishes) and 1 or more ‘u’ as decision variable (i.e. to be optimized).
-   
-    Simulation approach:
+The first thing to do is to create an instance of the `EpisodicLearningBlock` class. 
 
-    Say we want to solve for 100 min discretized every 1 min or $t_f$=100 below, 
-    - For each ‘i’ you can solve an optimization problem (can be anything as a function of ‘y_i+1’) and then go out of that time index, update ‘u_i+2’ (here only update one or more disturbance variables whichever way you wish by  increasing/decreasing them by 1%, say) and so on and resolve the optimization problem within the loop using the linear/nonlinear model.
-    -  This approach will eventually be applied for reinforcement learning-based control of SOFC/SOEC where the model will be replaced by the SOFC/SOEC model. We will do this for the PETSc integrator approach first- but more on that later. Dan has been working on the reinforcement learning approach now where we want to employ this approach. Nishant is also familiar with this SOFC/SOEC code good bit. I am copying both of them in case they have any input.
+Inputs: 
+- max_duration (float)
+
+`load_process_model(model_builder, discretize, nfe)` 
+
+Inputs:
+- model_builder : function that instantiates a pyomo.DAE model given a continuous set
+
+- discretize : boolean 
+- nfe        : Number of finite elements
+
+`initialize_episode()`
+
+__Private function:__ Don't have to call this unless explicitly required
+
+Creates boilerplate structures necessary for episode.
+
+Activates and deactivates necessary constraints.
 
 
-### Inner process model (mp): In-house NGCC model: 3 inputs-18 outputs
-- u[1] : NG flow rate (disturbance variable)
-- u[2] : H2 flow rate (control variable)
-- u[3] : Something    (cOnstant variable)
+Can add any instructions that must be completed before simulating an episode
+
+`simulate_step(t_ind, u_c, u_d, u_f)`
+
+
+__Private function:__ Don't have to call this unless explicitly required
+
+Simulates one timestep by activating and deactivating the necessary constraints
+
+- t_ind : time index to be simulated
+- u_c   : control input variable value
+- u_d   : disturbance input variable value
+- u_f   : fixed input variable value
+
+`simulate_episode(control_model, disturbance_model,fixed_var_value early_termination_criterion, save_json = False)`
+
+
+- control_model : function that takes in measured variables and a set point and returns control action
+- disturbance_model : function that simulates a disturbance at each time point
+- fixed_var_value : level(s) of fixed variables
+- early_termination_criterion : boolean that must be true when the criterion is met
+- save_json : boolean to indicate if results of an episode must be saved 
