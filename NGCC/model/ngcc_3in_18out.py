@@ -28,7 +28,7 @@ def create_ngcc_ROM(b, time_set):
 
     # TODO: replace these to be obtained from the function
     # b = pyo.ConcreteModel()
-    b.T = time_set       #ContinuousSet(bounds=(0,100)) 
+    b.time = time_set       #ContinuousSet(bounds=(0,100)) 
 
     # Define index sets
     b.N = pyo.RangeSet(1,54)
@@ -36,28 +36,28 @@ def create_ngcc_ROM(b, time_set):
     b.P = pyo.RangeSet(1,18)
 
     # Define variables (standard, not deviation)
-    b.u = pyo.Var(b.T, b.M)
-    b.y = pyo.Var(b.T, b.P)
-    b.x = pyo.Var(b.T, b.N)
+    b.u = pyo.Var(b.time, b.M)
+    b.y = pyo.Var(b.time, b.P)
+    b.x = pyo.Var(b.time, b.N)
 
-    b.dxdt = DerivativeVar(b.x, wrt = b.T)
+    b.dxdt = DerivativeVar(b.x, wrt = b.time)
 
     # Define expressions to calculate deviation variables
-    @b.Expression(b.T, b.M)
+    @b.Expression(b.time, b.M)
     def u_dev(b,_t, _m):
         return b.u[_t,_m] - u_NOM[1][_m]
 
-    @b.Expression(b.T, b.P)
+    @b.Expression(b.time, b.P)
     def y_dev(b,_t, _p):
         return b.y[_t,_p] - y_NOM[1][_p]
 
     # State space model constraints
-    @b.Constraint(b.T, b.N)
+    @b.Constraint(b.time, b.N)
     def c1(b, t, i):
         return (sum(A_mat[i-1,j-1] * b.x[t, j] for j in b.N) 
                 + sum(B_mat[i-1,k-1] * b.u_dev[t,k] for k in b.M)    == b.dxdt[t,i])
 
-    @b.Constraint(b.T, b.P)
+    @b.Constraint(b.time, b.P)
     def c2(b,  t,  i):
         return (sum(C_mat[i-1,j-1] * b.x[t,j] for j in b.N)
                 + sum(D_mat[i-1,k-1] * b.u_dev[t,k] for k in b.M)  == b.y_dev[t,i])

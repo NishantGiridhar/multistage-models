@@ -71,7 +71,7 @@ def disturbance_profile(t):
     if t <= 20:
         random.seed(32)
         return u_NOM[1][1]*(1 + 0.05*random.gauss(0,1))
-    elif t == 30:
+    elif t == 30:       
         random.seed(57)
         return  u_NOM[1][1]*(1 + 0.05*random.gauss(0,1))
     elif 60 <= t <= 90:
